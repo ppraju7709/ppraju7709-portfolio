@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Courier System{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fas fa-truck"></i>
+            <h3>COURIER & DELIVERY</h3>
+            <span>Audit System</span>
+        </div>
+        
+        <nav class="nav-menu">
+            <a href="#" class="nav-item active" onclick="showPage('dashboard')">
+                <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showPage('parcels')">
+                <i class="fas fa-boxes"></i> <span>Parcels</span>
+            </a>
+            <a href="#" class="nav-item" onclick="openModal('addParcelModal')">
+                <i class="fas fa-plus"></i> <span>Add Parcel</span>
+            </a>
+            <a href="#" class="nav-item" onclick="trackParcel()">
+                <i class="fas fa-search"></i> <span>Track Parcel</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showPage('branches')">
+                <i class="fas fa-building"></i> <span>Branches</span>
+            </a>
+        </nav>
+
+        <div class="quick-filters">
+            <h4>Quick Filters</h4>
+            <a href="#" class="filter-btn delivered"><i class="fas fa-check"></i> Delivered</a>
+            <a href="#" class="filter-btn pending"><i class="fas fa-clock"></i> Pending</a>
+            <a href="#" class="filter-btn transit"><i class="fas fa-truck"></i> In Transit</a>
+        </div>
+
+        <div class="admin-profile">
+            <img src="https://via.placeholder.com/40/667eea/ffffff?text=A" alt="Admin">
+            <div>
+                <span>{{ session.username|default('Admin') }}</span>
+                <small>{{ session.role|title()|default('Administrator') }}</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <!-- TOP HEADER -->
+        <header class="top-header">
+            <div class="welcome">
+                <h1>Welcome back, {{ session.username|default('Admin') }}! 👋</h1>
+                <p>Here's what's happening today.</p>
+            </div>
+            <div class="header-actions">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchTracking" placeholder="Search tracking...">
+                </div>
+                <div class="notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <a href="/logout" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </header>
+
+        <!-- STATS CARDS -->
+        <div class="stats-grid">
+            <div class="stat-card total">
+                <div class="stat-icon"><i class="fas fa-boxes"></i></div>
+                <div class="stat-info">
+                    <h3 id="totalParcels">0</h3>
+                    <p>Total Parcels</p>
+                    <span class="change positive">+12 today</span>
+                </div>
+            </div>
+            <div class="stat-card delivered">
+                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-info">
+                    <h3 id="deliveredParcels">0</h3>
+                    <p>Delivered</p>
+                    <span class="change positive">+45 today</span>
+                </div>
+            </div>
+            <div class="stat-card pending">
+                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-info">
+                    <h3 id="pendingParcels">0</h3>
+                    <p>Pending</p>
+                    <span class="change negative">-3 today</span>
+                </div>
+            </div>
+            <div class="stat-card transit">
+                <div class="stat-icon"><i class="fas fa-truck"></i></div>
+                <div class="stat-info">
+                    <h3 id="transitParcels">0</h3>
+                    <p>In Transit</p>
+                    <span class="change positive">+8 today</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROGRESS BARS -->
+        <div class="overview-section">
+            <h2>Shipment Overview</h2>
+            <div class="progress-bars">
+                <div class="progress-item">
+                    <span>Delivered <i class="fas fa-check"></i></span>
+                    <div class="progress"><div class="progress-fill delivered-fill" style="width: 67%"></div></div>
+                    <span>67%</span>
+                </div>
+                <div class="progress-item">
+                    <span>Pending <i class="fas fa-clock"></i></span>
+                    <div class="progress"><div class="progress-fill pending-fill" style="width: 13%"></div></div>
+                    <span>13%</span>
+                </div>
+                <div class="progress-item">
+                    <span>In Transit <i class="fas fa-truck"></i></span>
+                    <div class="progress"><div class="progress-fill transit-fill" style="width: 20%"></div></div>
+                    <span>20%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUICK ACTIONS -->
+        <div class="quick-actions">
+            <h2>Quick Actions</h2>
+            <div class="action-buttons">
+                <button class="action-btn primary" onclick="openModal('addParcelModal')">
+                    <i class="fas fa-plus"></i> Add New Parcel
+                </button>
+                <button class="action-btn secondary" onclick="trackParcel()">
+                    <i class="fas fa-search"></i> Track Package
+                </button>
+            </div>
+        </div>
+
+        <!-- RECENT PARCELS TABLE -->
+        <div class="table-section">
+            <div class="table-header">
+                <h2>Recent Parcels</h2>
+                <button class="btn-sm" onclick="refreshData()">🔄 Refresh</button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tracking #</th>
+                            <th>Sender</th>
+                            <th>Receiver</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Expected Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="parcelsBody">
+                        <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text2);">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ADD PARCEL MODAL -->
+<div id="addParcelModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-plus"></i> Add New Parcel</h3>
+            <span class="close" onclick="closeModal('addParcelModal')">&times;</span>
+        </div>
+        <form id="addParcelForm">
+            <input type="text" id="trackingId" placeholder="TRK001 (Unique Tracking ID)" required>
+            <input type="text" id="senderName" placeholder="Sender Name" required>
+            <input type="text" id="receiverName" placeholder="Receiver Name" required>
+            <select id="parcelType" required>
+                <option value="">Select Type</option>
+                <option value="Document">📄 Document</option>
+                <option value="Electronics">📱 Electronics</option>
+                <option value="Clothing">👕 Clothing</option>
+                <option value="Books">📚 Books</option>
+            </select>
+            <select id="parcelStatus" required>
+                <option value="Pending">⏳ Pending</option>
+                <option value="In Transit">🚚 In Transit</option>
+                <option value="Delivered">✅ Delivered</option>
+                <option value="Cancelled">❌ Cancelled</option>
+            </select>
+            <input type="date" id="expectedDate" required>
+            <button type="submit">🚚 Add Parcel</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

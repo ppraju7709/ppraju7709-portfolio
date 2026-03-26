@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Login - Courier System{% endblock %}
+{% block content %}
+<div class="login-page">
+    <div class="login-container">
+        <div class="login-box">
+            <div class="logo login-logo">
+                <i class="fas fa-truck"></i>
+                <h2>COURIER & DELIVERY</h2>
+                <p>Audit System</p>
+            </div>
+            <form id="loginForm">
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="username" placeholder="Username (admin/staff)" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" placeholder="Password (admin123)" required>
+                </div>
+                <div style="text-align: center; color: var(--text2); font-size: 0.85rem; margin-top: 10px;">
+                    admin/admin123 | staff/admin123
+                </div>
+                <button type="submit" class="login-btn">
+                    <span>Login</span> <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+            <div id="loginMessage"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const messageDiv = document.getElementById('loginMessage');
+    
+    try {
+        const response = await fetch('/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username, password})
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            window.location.href = '/dashboard';
+        } else {
+            messageDiv.innerHTML = `<div class="error">❌ ${data.message}</div>`;
+        }
+    } catch (error) {
+        messageDiv.innerHTML = `<div class="error">❌ Network error! Try again.</div>`;
+    }
+});
+</script>
+{% endblock %}
